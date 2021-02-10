@@ -121,3 +121,5 @@ class NewUsersController extends Controller
         $user = NewUsers::destroy($id);
     }
 }
+
+
