@@ -20,6 +20,12 @@ class TaskController extends Controller
         return view('tables',['tasks'=>$tasks,'users'=>$users]);
     }
 
+    public function allTasks()
+    {
+        $tasks = Task::all();
+        return $tasks;
+    }
+
     /**
      * Show the form for creating a new resource.
      *

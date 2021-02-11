@@ -9,6 +9,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::resource('tables', 'TaskController');
+Route::get('all/task', 'TaskController@allTasks');
 Route::post('tables/{id}/putted', 'TaskController@updateData');
 Route::resource('newuser', 'NewUsersController');
 Route::post('newuser/login','NewUsersController@login');
