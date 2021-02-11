@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\NewUsers;
 use Illuminate\Http\Request;
+use Mail;
+use App\Mail\ResetPasswordMail;
 
 class NewUsersController extends Controller
 {
@@ -15,6 +17,53 @@ class NewUsersController extends Controller
     public function index()
     {
         //
+    }
+
+    public function resetPasswrod(Request $request)
+    {
+        $request->validate(['email'=>'required']);
+        $user = NewUsers::where('email',$request->email)->first();
+        $otp = rand(111111,999999);
+        $user->otp = $otp;
+        $user->update();
+        try{
+            Mail::to($request->email)->send(new ResetPasswordMail($otp));
+            $response=$user;
+            return response($response,201);
+        }catch(Exception $eror){
+            dd($error);
+        }
+        
+
+    }
+
+    public function postReset(Request $request)
+    {
+       $request->validate([
+           'otp'=>'required',
+           'password'=>'required',
+           'email'=>'required'
+       ]);
+
+       $user = NewUsers::where('email',$request->email)->first();
+       if($user->otp == $request->otp){
+           $user->password = hash('sha256',$request->password);
+       $data = $user->update();
+       }
+       else{
+           $data = false;
+       }
+       
+       if($data){
+           return response($user,200);
+       }else{
+        return response()->json(['fault'=>'Something went wrong. Try again later'],500);
+       }
+
+
+
+       
+
     }
 
     /**
@@ -46,6 +95,30 @@ class NewUsersController extends Controller
             'email'=>$request->email,
             'password'=>hash('sha256', $request->password)
         ]);
+        if ($taskAdd){
+            $response = ['user'=>$taskAdd];
+            return response($response,201);
+        }else{
+            return response()->json(['fault'=>'Something went wrong. Try again later'],500);
+        }
+    }
+
+    public  function login(Request $request)
+    {
+        $request->validate([
+            'email'=>'required',
+            'password'=>'required'
+        ]);
+        $user = NewUsers::where('email',$request->email)->get();
+        if(count($user)>0){
+            $usert = NewUsers::where('email',$request->email)->first();
+            if($usert->password == hash('sha256', $request->password)){
+                $response = ['user'=>$usert];
+                return response($response,201);
+            }else{
+                return response()->json(['fault'=>'Wrong credential'],500);
+            }
+        }
     }
 
     /**
